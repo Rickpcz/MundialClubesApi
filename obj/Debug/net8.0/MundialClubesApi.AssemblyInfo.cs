@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MundialClubesApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+88b0da2333fe36d38e015a44b30cf68e1cdd04d8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8ad3df246df30e7bf4edc7cee63fa88be666e011")]
 [assembly: System.Reflection.AssemblyProductAttribute("MundialClubesApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MundialClubesApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
