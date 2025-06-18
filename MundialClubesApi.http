@@ -1,0 +1,6 @@
+@MundialClubesApi_HostAddress = http://localhost:5155
+
+GET {{MundialClubesApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
