@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MundialClubesApi.Data;
 
@@ -10,9 +11,11 @@ using MundialClubesApi.Data;
 namespace MundialClubesApi.Migrations
 {
     [DbContext(typeof(FutbolDbContext))]
-    partial class FutbolDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250618181216_Equipos")]
+    partial class Equipos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

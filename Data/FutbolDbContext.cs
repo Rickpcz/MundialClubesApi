@@ -8,5 +8,7 @@ namespace MundialClubesApi.Data
         public FutbolDbContext(DbContextOptions<FutbolDbContext> options) : base(options) { }
 
         public DbSet<Liga> Ligas { get; set; }
+        public DbSet<Equipo> Equipos { get; set; }
+
     }
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using MundialClubesApi.Data;
 using MundialClubesApi.Services;
 using Microsoft.EntityFrameworkCore;
+using MundialClubesApi.Models;
 
 namespace MundialClubesApi.Controllers
 {
@@ -28,6 +29,23 @@ namespace MundialClubesApi.Controllers
         {
             await service.CargarLigasAsync();
             return Ok("Ligas cargadas.");
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Liga>> GetLiga(int id)
+        {
+            var liga = await _db.Ligas.FindAsync(id);
+            if (liga == null) return NotFound();
+            return Ok(liga);
+        }
+
+        [HttpGet("pais/{pais}")]
+        public async Task<ActionResult<IEnumerable<Liga>>> GetLigasPorPais(string pais)
+        {
+            var ligas = await _db.Ligas
+                .Where(l => l.Pais != null && l.Pais.ToLower().Contains(pais.ToLower()))
+                .ToListAsync();
+            return Ok(ligas);
         }
     }
 }
