@@ -9,6 +9,26 @@ namespace MundialClubesApi.Data
 
         public DbSet<Liga> Ligas { get; set; }
         public DbSet<Equipo> Equipos { get; set; }
+        public DbSet<Partido> Partidos { get; set; }
+
+        public DbSet<Alineacion> Alineaciones { get; set; }
+        public DbSet<Jugador> Jugadores { get; set; }
+        public DbSet<JugadorAlineacion> JugadoresAlineacion { get; set; }
+        public DbSet<EstadisticaEquipo> EstadisticasEquipo { get; set; }
+        public DbSet<EventoPartido> EventosPartido { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Partido>().OwnsOne(p => p.Estado);
+            modelBuilder.Entity<JugadorAlineacion>()
+                .HasOne(j => j.Jugador)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+
+
 
     }
 }

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MundialClubesApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+795425d15feedec158c3a513bfe4ec8a9ed15151")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4e1996907b6a5017163dae0b0f7c5fb14be3f72c")]
 [assembly: System.Reflection.AssemblyProductAttribute("MundialClubesApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MundialClubesApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -47,5 +47,27 @@ namespace MundialClubesApi.Controllers
                 .ToListAsync();
             return Ok(ligas);
         }
+
+        [HttpGet("{id}/equipos")]
+        public async Task<IActionResult> GetEquiposDeLiga(int id)
+        {
+            var equipos = await _db.Equipos
+                .Where(e => e.LigaId == id)
+                .ToListAsync();
+
+            if (!equipos.Any()) return NotFound("No se encontraron equipos para esta liga.");
+            return Ok(equipos);
+        }
+
+        [HttpGet("{id}/partidos/{season}")]
+        public async Task<IActionResult> GetPartidosDeLiga(int id, int season)
+        {
+            var partidos = await _db.Partidos
+                .Where(p => p.LigaId == id && p.Fecha.Year == season)
+                .ToListAsync();
+
+            if (!partidos.Any()) return NotFound("No se encontraron partidos para esta liga y temporada.");
+            return Ok(partidos);
+        }
     }
 }
