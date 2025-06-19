@@ -110,7 +110,7 @@ Explora todas las competencias disponibles.
      ```json
      {
        "ConnectionStrings": {
-         "DefaultConnection": "server=localhost;database=futbol;user=root;password=tu_contraseña;"
+         "DefaultConnection": "server=sql3.freesqldatabase.com;database=sql3785780;user=sql3785780;password=secret;port=3306;"
        }
      }
      ```
