@@ -76,5 +76,19 @@ namespace MundialClubesApi.Controllers
 
             return Ok(partidos);
         }
+
+        [HttpGet("{equipoId}/jugadores")]
+        public async Task<IActionResult> ObtenerJugadores(int equipoId)
+        {
+            var jugadores = await _db.Alineaciones
+                .Include(a => a.Jugadores)
+                .ThenInclude(j => j.Jugador)
+                .Where(a => a.EquipoId == equipoId)
+                .SelectMany(a => a.Jugadores.Select(j => j.Jugador))
+                .Distinct()
+                .ToListAsync();
+
+            return Ok(jugadores);
+        }
     }
 }

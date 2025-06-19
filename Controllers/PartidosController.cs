@@ -63,12 +63,37 @@ namespace MundialClubesApi.Controllers
 
             return Ok(partidos);
         }
-[HttpGet("detalle/{fixtureId}")]
-public async Task<IActionResult> ObtenerDetalle(int fixtureId, [FromServices] ApiFootballService service)
-{
-    var resultadoJson = await service.ObtenerDetallePartidoAsync(fixtureId);
-    return Content(resultadoJson, "application/json");
-}
+        [HttpGet("detalle/{fixtureId}")]
+        public async Task<IActionResult> ObtenerDetalle(int fixtureId, [FromServices] ApiFootballService service)
+        {
+            var resultadoJson = await service.ObtenerDetallePartidoAsync(fixtureId);
+            return Content(resultadoJson, "application/json");
+        }
+
+        [HttpGet("por-liga/{ligaId}")]
+        public async Task<IActionResult> ObtenerPorLiga(int ligaId)
+        {
+            var partidos = await _db.Partidos.Where(p => p.LigaId == ligaId).ToListAsync();
+            return Ok(partidos);
+        }
+
+        [HttpGet("por-fecha/{fecha}")]
+        public async Task<IActionResult> ObtenerPorFecha(DateTime fecha)
+        {
+            var partidos = await _db.Partidos
+                .Where(p => p.Fecha.Date == fecha.Date)
+                .ToListAsync();
+            return Ok(partidos);
+        }
+
+        [HttpGet("estado/{estado}")]
+        public async Task<IActionResult> ObtenerPorEstado(string estado)
+        {
+            var partidos = await _db.Partidos
+                .Where(p => p.Estado.Long.ToLower().Contains(estado.ToLower()))
+                .ToListAsync();
+            return Ok(partidos);
+        }
 
 
 

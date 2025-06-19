@@ -69,5 +69,22 @@ namespace MundialClubesApi.Controllers
             if (!partidos.Any()) return NotFound("No se encontraron partidos para esta liga y temporada.");
             return Ok(partidos);
         }
+
+        [HttpGet("tipo/{tipo}")]
+        public async Task<IActionResult> ObtenerPorTipo(string tipo)
+        {
+            var ligas = await _db.Ligas
+                .Where(l => l.Tipo != null && l.Tipo.ToLower().Contains(tipo.ToLower()))
+                .ToListAsync();
+            return Ok(ligas);
+        }
+
+
+        [HttpGet("{ligaId}/partidos")]
+        public async Task<IActionResult> ObtenerPartidos(int ligaId)
+        {
+            var partidos = await _db.Partidos.Where(p => p.LigaId == ligaId).ToListAsync();
+            return Ok(partidos);
+        }
     }
 }
