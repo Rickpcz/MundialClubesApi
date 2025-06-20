@@ -19,6 +19,11 @@ builder.Services.AddHttpClient<ApiFootballService>(client =>
     client.DefaultRequestHeaders.Add("x-rapidapi-host", "v3.football.api-sports.io");
 });
 
+builder.Services.AddHttpClient<TheSportsDbService>();
+builder.Services.AddHttpClient<TransferenciasService>();
+builder.Services.AddHttpClient<JugadoresService>();
+
+
 // Controladores y Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

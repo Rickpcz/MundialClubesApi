@@ -11,10 +11,12 @@ namespace MundialClubesApi.Controllers
     public class PartidosController : ControllerBase
     {
         private readonly FutbolDbContext _db;
+        private readonly TheSportsDbService _theSportsDbService;
 
-        public PartidosController(FutbolDbContext db)
+        public PartidosController(FutbolDbContext db, TheSportsDbService theSportsDbService)
         {
             _db = db;
+            _theSportsDbService = theSportsDbService;
         }
 
         [HttpPost("partidos/cargar/{ligaId}/{season}")]
@@ -96,6 +98,11 @@ namespace MundialClubesApi.Controllers
         }
 
 
-
+        [HttpGet("externos")]
+        public async Task<IActionResult> ObtenerPartidosExternos([FromQuery] string fecha)
+        {
+            var partidos = await _theSportsDbService.ObtenerPartidosDelDia(fecha);
+            return Ok(partidos);
+        }
     }
 }
