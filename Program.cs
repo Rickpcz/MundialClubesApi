@@ -4,14 +4,14 @@ using MundialClubesApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configura EF Core con MySQL (usa la cadena de conexión desde appsettings.json)
+// Configura EF Core
 builder.Services.AddDbContext<FutbolDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36))); // Ajusta versión según tu host
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36)));
 });
 
-// 2. Inyecta el servicio HTTP para consumir API-Football
+// Cliente HTTP para API-Football
 builder.Services.AddHttpClient<ApiFootballService>(client =>
 {
     client.BaseAddress = new Uri("https://v3.football.api-sports.io/");
@@ -19,26 +19,39 @@ builder.Services.AddHttpClient<ApiFootballService>(client =>
     client.DefaultRequestHeaders.Add("x-rapidapi-host", "v3.football.api-sports.io");
 });
 
-// 3. Habilita controladores y Swagger
+// Controladores y Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// 💡 Habilita CORS aquí
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
 
-// 4. Puerto dinámico para Render o 5000 localmente
+// Puerto dinámico o fijo
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
 app.Urls.Add($"http://0.0.0.0:{port}");
 
-// 5. Middleware de desarrollo y Swagger siempre activo
+// Swagger
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// 6. HTTPS redirection desactivado para evitar errores locales
-// app.UseHttpsRedirection();
-
 app.UseRouting();
+
+// 💡 Usa CORS aquí
+app.UseCors();
+
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
