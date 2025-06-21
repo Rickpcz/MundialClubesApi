@@ -5,11 +5,20 @@ using MundialClubesApi.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configura EF Core
+// builder.Services.AddDbContext<FutbolDbContext>(options =>
+// {
+//     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+//     options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36)));
+// });
+
+
 builder.Services.AddDbContext<FutbolDbContext>(options =>
-{
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36)));
-});
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        new MySqlServerVersion(new Version(8, 0, 32))
+    )
+);
+
 
 // Cliente HTTP para API-Football
 builder.Services.AddHttpClient<ApiFootballService>(client =>
