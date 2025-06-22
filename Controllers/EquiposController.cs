@@ -32,11 +32,28 @@ namespace MundialClubesApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetEquipos()
+        public async Task<IActionResult> GetEquipos(int page = 1)
         {
-            var equipos = await _db.Equipos.ToListAsync();
-            return Ok(equipos);
+            const int pageSize = 18;
+            if (page <= 0) page = 1;
+
+            var totalEquipos = await _db.Equipos.CountAsync();
+            var equipos = await _db.Equipos
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return Ok(new
+            {
+                Total = totalEquipos,
+                Page = page,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling(totalEquipos / (double)pageSize),
+                Data = equipos
+            });
         }
+
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetEquipo(int id)
@@ -77,18 +94,19 @@ namespace MundialClubesApi.Controllers
             return Ok(partidos);
         }
 
-        [HttpGet("{equipoId}/jugadores")]
-        public async Task<IActionResult> ObtenerJugadores(int equipoId)
+        [HttpGet("{id}/jugadores")]
+        public async Task<IActionResult> ObtenerJugadoresDesdeApi(int id, [FromServices] JugadoresService service)
         {
-            var jugadores = await _db.Alineaciones
-                .Include(a => a.Jugadores)
-                .ThenInclude(j => j.Jugador)
-                .Where(a => a.EquipoId == equipoId)
-                .SelectMany(a => a.Jugadores.Select(j => j.Jugador))
-                .Distinct()
-                .ToListAsync();
+            Console.WriteLine($"🔍 Obteniendo plantilla para equipo {id}");
+
+            var jugadores = await service.ObtenerPlantillaPorEquipo(id);
+            Console.WriteLine($"👥 Total jugadores obtenidos: {jugadores.Count}");
 
             return Ok(jugadores);
         }
+
+
+
+
     }
 }

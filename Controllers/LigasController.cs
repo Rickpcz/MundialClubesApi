@@ -86,5 +86,13 @@ namespace MundialClubesApi.Controllers
             var partidos = await _db.Partidos.Where(p => p.LigaId == ligaId).ToListAsync();
             return Ok(partidos);
         }
+
+        [HttpGet("{ligaId}/tabla/{season}")]
+        public async Task<IActionResult> ObtenerTabla(int ligaId, int season, [FromServices] ApiFootballService service)
+        {
+            var tabla = await service.ObtenerTablaPorLigaTemporada(ligaId, season);
+            return Ok(tabla);
+        }
+
     }
 }

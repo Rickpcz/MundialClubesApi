@@ -24,7 +24,11 @@ builder.Services.AddDbContext<FutbolDbContext>(options =>
 builder.Services.AddHttpClient<ApiFootballService>(client =>
 {
     client.BaseAddress = new Uri("https://v3.football.api-sports.io/");
+     //API KEYS
     client.DefaultRequestHeaders.Add("x-rapidapi-key", "ac0eef5a16b0719f79b4d20ba1a2cf17");
+    // client.DefaultRequestHeaders.Add("x-rapidapi-key","fd83cef58d6e43dd3ff29210593e02fe");
+
+     //FIN API KEYS
     client.DefaultRequestHeaders.Add("x-rapidapi-host", "v3.football.api-sports.io");
 });
 
