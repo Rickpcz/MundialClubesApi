@@ -42,7 +42,7 @@ namespace MundialClubesApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Alineaciones");
+                    b.ToTable("Alineaciones", (string)null);
                 });
 
             modelBuilder.Entity("Equipo", b =>
@@ -72,7 +72,7 @@ namespace MundialClubesApi.Migrations
 
                     b.HasIndex("LigaId");
 
-                    b.ToTable("Equipos");
+                    b.ToTable("Equipos", (string)null);
                 });
 
             modelBuilder.Entity("EstadisticaEquipo", b =>
@@ -99,7 +99,7 @@ namespace MundialClubesApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EstadisticasEquipo");
+                    b.ToTable("EstadisticasEquipo", (string)null);
                 });
 
             modelBuilder.Entity("EventoPartido", b =>
@@ -134,7 +134,7 @@ namespace MundialClubesApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EventosPartido");
+                    b.ToTable("EventosPartido", (string)null);
                 });
 
             modelBuilder.Entity("Jugador", b =>
@@ -167,7 +167,7 @@ namespace MundialClubesApi.Migrations
 
                     b.HasIndex("EquipoId");
 
-                    b.ToTable("Jugadores");
+                    b.ToTable("Jugadores", (string)null);
                 });
 
             modelBuilder.Entity("JugadorAlineacion", b =>
@@ -194,7 +194,7 @@ namespace MundialClubesApi.Migrations
 
                     b.HasIndex("JugadorId");
 
-                    b.ToTable("JugadoresAlineacion");
+                    b.ToTable("JugadoresAlineacion", (string)null);
                 });
 
             modelBuilder.Entity("MundialClubesApi.Models.Liga", b =>
@@ -219,7 +219,7 @@ namespace MundialClubesApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Ligas");
+                    b.ToTable("Ligas", (string)null);
                 });
 
             modelBuilder.Entity("Partido", b =>
@@ -250,7 +250,7 @@ namespace MundialClubesApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Partidos");
+                    b.ToTable("Partidos", (string)null);
                 });
 
             modelBuilder.Entity("Equipo", b =>
@@ -294,7 +294,7 @@ namespace MundialClubesApi.Migrations
 
             modelBuilder.Entity("Partido", b =>
                 {
-                    b.OwnsOne("StatusInfo", "Estado", b1 =>
+                    b.OwnsOne("Partido.Estado#StatusInfo", "Estado", b1 =>
                         {
                             b1.Property<int>("PartidoId")
                                 .HasColumnType("int");
@@ -312,7 +312,7 @@ namespace MundialClubesApi.Migrations
 
                             b1.HasKey("PartidoId");
 
-                            b1.ToTable("Partidos");
+                            b1.ToTable("Partidos", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("PartidoId");

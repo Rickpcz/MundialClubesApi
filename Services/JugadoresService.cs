@@ -1,13 +1,17 @@
 using System.Net.Http;
 using System.Text.Json;
+using MundialClubesApi.Data;
+using Microsoft.EntityFrameworkCore;
 
 public class JugadoresService
 {
     private readonly HttpClient _http;
+    private readonly FutbolDbContext _db;
 
-    public JugadoresService(HttpClient http)
+    public JugadoresService(HttpClient http, FutbolDbContext db)
     {
         _http = http;
+        _db = db;
         _http.BaseAddress = new Uri("https://v3.football.api-sports.io/");
         //API KEYS
         _http.DefaultRequestHeaders.Add("x-apisports-key", "ac0eef5a16b0719f79b4d20ba1a2cf17");
@@ -29,8 +33,17 @@ public class JugadoresService
         return jugador.GetProperty("player").GetProperty("photo").GetString();
     }
 
-    public async Task<List<Jugador>> ObtenerPlantillaPorEquipo(int equipoId, int season = 2023)
+   public async Task<List<Jugador>> ObtenerPlantillaPorEquipo(int equipoId, int season = 2023)
     {
+        // 1. Verificar si ya existen en la base de datos
+        var existentes = await _db.Jugadores
+            .Where(j => j.EquipoId == equipoId && j.Temporada == season)
+            .ToListAsync();
+
+        if (existentes.Any())
+            return existentes;
+
+        // 2. Si no existen, consulta la API
         var url = $"players?team={equipoId}&season={season}";
         var response = await _http.GetAsync(url);
 
@@ -52,22 +65,34 @@ public class JugadoresService
                 var player = item.GetProperty("player");
                 var statisticsArray = item.GetProperty("statistics");
 
-                // Prioriza Premier League u otra si quieres
                 var stats = statisticsArray.EnumerateArray().FirstOrDefault();
+                if (stats.ValueKind == JsonValueKind.Undefined) continue;
+
                 var games = stats.GetProperty("games");
 
-                jugadores.Add(new Jugador
+                var jugador = new Jugador
                 {
                     Nombre = player.GetProperty("name").GetString() ?? "Desconocido",
                     Foto = player.GetProperty("photo").GetString() ?? "",
                     Numero = games.TryGetProperty("number", out var numero) && numero.ValueKind == JsonValueKind.Number ? numero.GetInt32() : 0,
-                    Posicion = games.TryGetProperty("position", out var posicion) ? posicion.GetString() ?? "N/A" : "N/A"
-                });
+                    Posicion = games.TryGetProperty("position", out var posicion) ? posicion.GetString() ?? "N/A" : "N/A",
+                    EquipoId = equipoId,
+                    Temporada = season
+                };
+
+                jugadores.Add(jugador);
             }
             catch
             {
                 continue;
             }
+        }
+
+        // 3. Guardar en base de datos para cachear
+        if (jugadores.Any())
+        {
+            _db.Jugadores.AddRange(jugadores);
+            await _db.SaveChangesAsync();
         }
 
         return jugadores;
