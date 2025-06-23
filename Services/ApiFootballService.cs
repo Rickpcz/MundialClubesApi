@@ -325,41 +325,41 @@ namespace MundialClubesApi.Services
             return JsonSerializer.Serialize(resultado, new JsonSerializerOptions { WriteIndented = true });
         }
 
-         public async Task<List<StandingDto>> ObtenerTablaPorLigaTemporada(int leagueId, int season)
-    {
-        var response = await _http.GetAsync($"standings?league={leagueId}&season={season}");
-        if (!response.IsSuccessStatusCode) return new List<StandingDto>();
-
-        var json = await response.Content.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(json);
-
-        var tabla = new List<StandingDto>();
-
-        var standingsArray = doc.RootElement
-            .GetProperty("response")[0]
-            .GetProperty("league")
-            .GetProperty("standings")[0];
-
-        foreach (var equipo in standingsArray.EnumerateArray())
+        public async Task<List<StandingDto>> ObtenerTablaPorLigaTemporada(int leagueId, int season)
         {
-            tabla.Add(new StandingDto
-            {
-                Posicion = equipo.GetProperty("rank").GetInt32(),
-                NombreEquipo = equipo.GetProperty("team").GetProperty("name").GetString() ?? "",
-                Logo = equipo.GetProperty("team").GetProperty("logo").GetString() ?? "",
-                Puntos = equipo.GetProperty("points").GetInt32(),
-                PartidosJugados = equipo.GetProperty("all").GetProperty("played").GetInt32(),
-                Ganados = equipo.GetProperty("all").GetProperty("win").GetInt32(),
-                Empatados = equipo.GetProperty("all").GetProperty("draw").GetInt32(),
-                Perdidos = equipo.GetProperty("all").GetProperty("lose").GetInt32(),
-                GolesFavor = equipo.GetProperty("all").GetProperty("goals").GetProperty("for").GetInt32(),
-                GolesContra = equipo.GetProperty("all").GetProperty("goals").GetProperty("against").GetInt32(),
-                Grupo = equipo.TryGetProperty("group", out var g) ? g.GetString() ?? "" : ""
-            });
-        }
+            var response = await _http.GetAsync($"standings?league={leagueId}&season={season}");
+            if (!response.IsSuccessStatusCode) return new List<StandingDto>();
 
-        return tabla;
-    }
+            var json = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+
+            var tabla = new List<StandingDto>();
+
+            var standingsArray = doc.RootElement
+                .GetProperty("response")[0]
+                .GetProperty("league")
+                .GetProperty("standings")[0];
+
+            foreach (var equipo in standingsArray.EnumerateArray())
+            {
+                tabla.Add(new StandingDto
+                {
+                    Posicion = equipo.GetProperty("rank").GetInt32(),
+                    NombreEquipo = equipo.GetProperty("team").GetProperty("name").GetString() ?? "",
+                    Logo = equipo.GetProperty("team").GetProperty("logo").GetString() ?? "",
+                    Puntos = equipo.GetProperty("points").GetInt32(),
+                    PartidosJugados = equipo.GetProperty("all").GetProperty("played").GetInt32(),
+                    Ganados = equipo.GetProperty("all").GetProperty("win").GetInt32(),
+                    Empatados = equipo.GetProperty("all").GetProperty("draw").GetInt32(),
+                    Perdidos = equipo.GetProperty("all").GetProperty("lose").GetInt32(),
+                    GolesFavor = equipo.GetProperty("all").GetProperty("goals").GetProperty("for").GetInt32(),
+                    GolesContra = equipo.GetProperty("all").GetProperty("goals").GetProperty("against").GetInt32(),
+                    Grupo = equipo.TryGetProperty("group", out var g) ? g.GetString() ?? "" : ""
+                });
+            }
+
+            return tabla;
+        }
 
     }
 }

@@ -50,14 +50,17 @@ public class JugadoresService
             try
             {
                 var player = item.GetProperty("player");
-                var stats = item.GetProperty("statistics")[0];
+                var statisticsArray = item.GetProperty("statistics");
+
+                // Prioriza Premier League u otra si quieres
+                var stats = statisticsArray.EnumerateArray().FirstOrDefault();
                 var games = stats.GetProperty("games");
 
                 jugadores.Add(new Jugador
                 {
                     Nombre = player.GetProperty("name").GetString() ?? "Desconocido",
                     Foto = player.GetProperty("photo").GetString() ?? "",
-                    Numero = games.TryGetProperty("number", out var numero) ? numero.GetInt32() : 0,
+                    Numero = games.TryGetProperty("number", out var numero) && numero.ValueKind == JsonValueKind.Number ? numero.GetInt32() : 0,
                     Posicion = games.TryGetProperty("position", out var posicion) ? posicion.GetString() ?? "N/A" : "N/A"
                 });
             }
@@ -69,6 +72,7 @@ public class JugadoresService
 
         return jugadores;
     }
+
 
 
 }
