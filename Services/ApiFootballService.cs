@@ -327,6 +327,29 @@ namespace MundialClubesApi.Services
 
         public async Task<List<StandingDto>> ObtenerTablaPorLigaTemporada(int leagueId, int season)
         {
+            var cache = await _db.Standings
+                .Where(s => s.LigaId == leagueId && s.Temporada == season)
+                .ToListAsync();
+
+            if (cache.Any())
+            {
+                return cache.Select(s => new StandingDto
+                {
+                    Posicion = s.Posicion,
+                    NombreEquipo = s.NombreEquipo,
+                    Logo = s.Logo,
+                    Puntos = s.Puntos,
+                    PartidosJugados = s.PartidosJugados,
+                    Ganados = s.Ganados,
+                    Empatados = s.Empatados,
+                    Perdidos = s.Perdidos,
+                    GolesFavor = s.GolesFavor,
+                    GolesContra = s.GolesContra,
+                    Grupo = s.Grupo
+                }).ToList();
+            }
+
+            // Consulta API
             var response = await _http.GetAsync($"standings?league={leagueId}&season={season}");
             if (!response.IsSuccessStatusCode) return new List<StandingDto>();
 
@@ -334,32 +357,200 @@ namespace MundialClubesApi.Services
             using var doc = JsonDocument.Parse(json);
 
             var tabla = new List<StandingDto>();
+            var registros = new List<Standing>();
 
-            var standingsArray = doc.RootElement
+            var standingsRoot = doc.RootElement
                 .GetProperty("response")[0]
                 .GetProperty("league")
-                .GetProperty("standings")[0];
+                .GetProperty("standings");
 
-            foreach (var equipo in standingsArray.EnumerateArray())
+            foreach (var grupo in standingsRoot.EnumerateArray())
             {
-                tabla.Add(new StandingDto
+                foreach (var equipo in grupo.EnumerateArray())
                 {
-                    Posicion = equipo.GetProperty("rank").GetInt32(),
-                    NombreEquipo = equipo.GetProperty("team").GetProperty("name").GetString() ?? "",
-                    Logo = equipo.GetProperty("team").GetProperty("logo").GetString() ?? "",
-                    Puntos = equipo.GetProperty("points").GetInt32(),
-                    PartidosJugados = equipo.GetProperty("all").GetProperty("played").GetInt32(),
-                    Ganados = equipo.GetProperty("all").GetProperty("win").GetInt32(),
-                    Empatados = equipo.GetProperty("all").GetProperty("draw").GetInt32(),
-                    Perdidos = equipo.GetProperty("all").GetProperty("lose").GetInt32(),
-                    GolesFavor = equipo.GetProperty("all").GetProperty("goals").GetProperty("for").GetInt32(),
-                    GolesContra = equipo.GetProperty("all").GetProperty("goals").GetProperty("against").GetInt32(),
-                    Grupo = equipo.TryGetProperty("group", out var g) ? g.GetString() ?? "" : ""
-                });
+                    var dto = new StandingDto
+                    {
+                        Posicion = equipo.GetProperty("rank").GetInt32(),
+                        NombreEquipo = equipo.GetProperty("team").GetProperty("name").GetString() ?? "",
+                        Logo = equipo.GetProperty("team").GetProperty("logo").GetString() ?? "",
+                        Puntos = equipo.GetProperty("points").GetInt32(),
+                        PartidosJugados = equipo.GetProperty("all").GetProperty("played").GetInt32(),
+                        Ganados = equipo.GetProperty("all").GetProperty("win").GetInt32(),
+                        Empatados = equipo.GetProperty("all").GetProperty("draw").GetInt32(),
+                        Perdidos = equipo.GetProperty("all").GetProperty("lose").GetInt32(),
+                        GolesFavor = equipo.GetProperty("all").GetProperty("goals").GetProperty("for").GetInt32(),
+                        GolesContra = equipo.GetProperty("all").GetProperty("goals").GetProperty("against").GetInt32(),
+                        Grupo = equipo.TryGetProperty("group", out var g) ? g.GetString() ?? "" : ""
+                    };
+
+                    tabla.Add(dto);
+
+                    registros.Add(new Standing
+                    {
+                        LigaId = leagueId,
+                        Temporada = season,
+                        EquipoId = equipo.GetProperty("team").GetProperty("id").GetInt32(),
+                        NombreEquipo = dto.NombreEquipo,
+                        Logo = dto.Logo,
+                        Posicion = dto.Posicion,
+                        Puntos = dto.Puntos,
+                        PartidosJugados = dto.PartidosJugados,
+                        Ganados = dto.Ganados,
+                        Empatados = dto.Empatados,
+                        Perdidos = dto.Perdidos,
+                        GolesFavor = dto.GolesFavor,
+                        GolesContra = dto.GolesContra,
+                        Grupo = dto.Grupo,
+                        FechaActualizacion = DateTime.UtcNow
+                    });
+                }
             }
+
+            if (registros.Any())
+            {
+                _db.Standings.AddRange(registros);
+                await _db.SaveChangesAsync();
+            }
+
+            // Guardar resumen al final
+            var resumen = await ObtenerResumenTemporada(leagueId, season);
+            var liga = await _db.Ligas.FirstOrDefaultAsync(l => l.Id == leagueId);
+            await GuardarResumenTemporada(resumen, leagueId, liga?.Nombre ?? "Desconocido");
 
             return tabla;
         }
+
+
+        private async Task<(string nombre, int goles)> ObtenerGoleador(int leagueId, int season)
+        {
+            var res = await _http.GetAsync($"players/topscorers?league={leagueId}&season={season}");
+            if (!res.IsSuccessStatusCode) return ("Desconocido", 0);
+
+            var json = await res.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+
+            var player = doc.RootElement.GetProperty("response")[0].GetProperty("player");
+            var stats = doc.RootElement.GetProperty("response")[0].GetProperty("statistics")[0];
+
+            return (
+                player.GetProperty("name").GetString() ?? "Desconocido",
+                stats.GetProperty("goals").GetProperty("total").GetInt32()
+            );
+        }
+
+
+        private async Task<(string nombre, int asistencias)> ObtenerAsistidor(int leagueId, int season)
+        {
+            var res = await _http.GetAsync($"players/topassists?league={leagueId}&season={season}");
+            if (!res.IsSuccessStatusCode) return ("Desconocido", 0);
+
+            var json = await res.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+
+            var player = doc.RootElement.GetProperty("response")[0].GetProperty("player");
+            var stats = doc.RootElement.GetProperty("response")[0].GetProperty("statistics")[0];
+
+            return (
+                player.GetProperty("name").GetString() ?? "Desconocido",
+                stats.GetProperty("goals").GetProperty("assists").GetInt32()
+            );
+        }
+
+        private async Task<(string descripcion, string resultado, string ganador)> ObtenerUltimoFixture(int leagueId, int season)
+        {
+            var res = await _http.GetAsync($"fixtures?league={leagueId}&season={season}&status=FT&last=1");
+            if (!res.IsSuccessStatusCode) return ("Sin datos", "", "Desconocido");
+
+            var json = await res.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+
+            var response = doc.RootElement.GetProperty("response");
+
+            if (response.GetArrayLength() == 0)
+                return ("Sin partidos finalizados", "", "Desconocido");
+
+            var match = response[0];
+
+            var home = match.GetProperty("teams").GetProperty("home");
+            var away = match.GetProperty("teams").GetProperty("away");
+
+            var goals = match.GetProperty("goals");
+            var golesHome = goals.GetProperty("home").GetInt32();
+            var golesAway = goals.GetProperty("away").GetInt32();
+
+            string resultado = $"{home.GetProperty("name").GetString()} {golesHome} - {golesAway} {away.GetProperty("name").GetString()}";
+            string ganador = golesHome > golesAway
+                ? home.GetProperty("name").GetString() ?? "Desconocido"
+                : golesAway > golesHome
+                    ? away.GetProperty("name").GetString() ?? "Desconocido"
+                    : "Empate";
+
+            return (
+                $"{match.GetProperty("fixture").GetProperty("date").GetString()} - {match.GetProperty("league").GetProperty("round").GetString()}",
+                resultado,
+                ganador
+            );
+        }
+
+
+        public async Task<ResumenTemporadaDto> ObtenerResumenTemporada(int leagueId, int season)
+        {
+            var (goleador, goles) = await ObtenerGoleador(leagueId, season);
+            var (asistidor, asistencias) = await ObtenerAsistidor(leagueId, season);
+            var (descFixture, resultadoFixture, campeon) = await ObtenerUltimoFixture(leagueId, season);
+
+            return new ResumenTemporadaDto
+            {
+                Liga = $"ID: {leagueId}",
+                Temporada = season,
+                Campeon = campeon,
+                Goleador = goleador,
+                Goles = goles,
+                Asistidor = asistidor,
+                Asistencias = asistencias,
+                UltimoPartido = descFixture,
+                Resultado = resultadoFixture
+            };
+        }
+
+
+        public async Task GuardarResumenTemporada(ResumenTemporadaDto dto, int ligaId, string ligaNombre)
+        {
+            var resumen = new ResumenTemporada
+            {
+                LigaId = ligaId,
+                LigaNombre = ligaNombre,
+                Temporada = dto.Temporada,
+                Campeon = dto.Campeon,
+                Goleador = dto.Goleador,
+                Goles = dto.Goles,
+                Asistidor = dto.Asistidor,
+                Asistencias = dto.Asistencias,
+                UltimoPartido = dto.UltimoPartido,
+                Resultado = dto.Resultado,
+                CreadoEn = DateTime.UtcNow
+            };
+
+            _db.ResumenTemporada.Add(resumen);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task<ResumenTemporadaDto> ObtenerYGuardarResumenTemporada(int ligaId, int temporada)
+        {
+            // 1. Obtener nombre liga
+            var liga = await _db.Ligas.FindAsync(ligaId);
+            var ligaNombre = liga?.Nombre ?? "Desconocida";
+
+            // 2. Obtener resumen
+            var resumen = await ObtenerResumenTemporada(ligaId, temporada);
+
+            // 3. Guardar en BD
+            await GuardarResumenTemporada(resumen, ligaId, ligaNombre);
+
+            return resumen;
+        }
+
+
 
     }
 }

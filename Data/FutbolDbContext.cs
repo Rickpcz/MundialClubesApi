@@ -16,6 +16,9 @@ namespace MundialClubesApi.Data
         public DbSet<JugadorAlineacion> JugadoresAlineacion { get; set; }
         public DbSet<EstadisticaEquipo> EstadisticasEquipo { get; set; }
         public DbSet<EventoPartido> EventosPartido { get; set; }
+        public DbSet<Standing> Standings { get; set; }
+        public DbSet<ResumenTemporada> ResumenTemporada { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
